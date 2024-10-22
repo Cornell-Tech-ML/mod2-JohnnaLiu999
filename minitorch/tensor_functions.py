@@ -398,7 +398,7 @@ class Exp(Function):
 
 class Sum(Function):
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, dim: Tensor | None = None) -> Tensor:
+    def forward(ctx: Context, t1: Tensor, dim: Tensor) -> Tensor:
         """Forward pass for the sum operation.
 
         Args:
