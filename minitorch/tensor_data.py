@@ -72,7 +72,6 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     for i in range(len(shape) - 1, -1, -1):
         out_index[i] = ordinal % shape[i]
         ordinal = ordinal // shape[i]
-    return out_index
 
 
 def broadcast_index(

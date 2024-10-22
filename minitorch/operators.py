@@ -83,7 +83,7 @@ def max(x: float, y: float) -> float:
     # END ASSIGN 0.1
 
 
-def is_close(x: float, y: float) -> float:
+def is_close(x: float, y: float) -> bool:
     """$f(x) = |x - y| < 1e-2$"""
     # ASSIGN 0.1
     return (x - y < 1e-2) and (y - x < 1e-2)

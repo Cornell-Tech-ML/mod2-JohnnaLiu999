@@ -412,8 +412,11 @@ class Sum(Function):
             Tensor: The sum of the input tensor along the specified dimension.
 
         """
-        return t1.f.add_reduce(t1, int(dim.item()))
-
+        if dim is None:
+            return t1.f.add_reduce(t1, None)
+        else:
+            return t1.f.add_reduce(t1, int(dim.item()))
+        
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         """Backward pass for the sum operation.
