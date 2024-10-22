@@ -1,3 +1,7 @@
+"""Contains modules for automatic differentiation, scalar functions,
+optimization, datasets, and testing functionalities.
+"""
+
 from .testing import MathTest, MathTestVariable  # type: ignore # noqa: F401,F403
 from .tensor_data import *  # noqa: F401,F403
 from .tensor import *  # noqa: F401,F403
