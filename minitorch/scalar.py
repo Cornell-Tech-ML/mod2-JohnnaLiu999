@@ -62,6 +62,7 @@ class Scalar:
     derivative: Optional[float] = None
     name: str = field(default="")
     unique_id: int = field(default=0)
+    grad: Optional[float] = None
 
     def __post_init__(self):
         global _var_count
@@ -91,6 +92,46 @@ class Scalar:
     def __rmul__(self, b: ScalarLike) -> Scalar:
         return self * b
 
+    def __lt__(self, b: ScalarLike) -> Scalar:
+        """Returns 1.0 if self is less than other, else 0."""
+        return LT.apply(self, b)
+
+    def __gt__(self, b: ScalarLike) -> Scalar:
+        """Returns 1 if self is greater than other, else 0."""
+        return LT.apply(b, self)
+
+    def __sub__(self, b: ScalarLike) -> Scalar:
+        """Returns the result of subtracting other from self."""
+        return Add.apply(self, Neg.apply(b))
+
+    def __neg__(self) -> Scalar:
+        """Returns the negation of self."""
+        return Neg.apply(self)
+
+    def __add__(self, b: ScalarLike) -> Scalar:
+        """Returns the result of adding self and other."""
+        return Add.apply(self, b)
+
+    def __eq__(self, b: ScalarLike) -> Scalar:
+        """Check whether they equal"""
+        return EQ.apply(self, b)
+
+    def log(self) -> Scalar:
+        """Returns the natural logarithm of self."""
+        return Log.apply(self)
+
+    def exp(self) -> Scalar:
+        """Returns the exponential of self."""
+        return Exp.apply(self)
+
+    def sigmoid(self) -> Scalar:
+        """Returns the sigmoid of self."""
+        return Sigmoid.apply(self)
+
+    def relu(self) -> Scalar:
+        """Returns the ReLU of self (max(0, x))."""
+        return ReLU.apply(self)
+
     # Variable elements for backprop
 
     def accumulate_derivative(self, x: Any) -> None:
@@ -112,21 +153,46 @@ class Scalar:
         return self.history is not None and self.history.last_fn is None
 
     def is_constant(self) -> bool:
+        """Check if the scalar is constant (i.e., has no history)."""
         return self.history is None
 
     @property
     def parents(self) -> Iterable[Variable]:
-        """Get the variables used to create this one."""
+        """Returns the parent variables of the current variable.These are the inputs to the operation that produced this variable."""
         assert self.history is not None
         return self.history.inputs
 
     def chain_rule(self, d_output: Any) -> Iterable[Tuple[Variable, Any]]:
+        """Applies the chain rule to compute the gradient of the output with respect to the input variables.
+
+        Args:
+        ----
+            d_output (Any): The gradient of the output.
+
+        Returns:
+        -------
+            Iterable[Tuple[Variable, Any]]: An iterable of tuples containing variables and their corresponding gradients.
+
+        """
         h = self.history
         assert h is not None
         assert h.last_fn is not None
         assert h.ctx is not None
 
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # TODO: Implement for Task 1.3.
+        local_gradients = h.last_fn.backward(h.ctx, d_output)  # type: ignore
+        if not isinstance(local_gradients, tuple):
+            local_gradients = (local_gradients,)
+
+        variable_gradient_pairs = [
+            (var, grad)
+            for var, grad in zip(h.inputs, local_gradients)
+            if not var.is_constant()
+        ]
+
+        return variable_gradient_pairs
+
+        # raise NotImplementedError("Need to implement for Task 1.3")
 
     def backward(self, d_output: Optional[float] = None) -> None:
         """Calls autodiff to fill in the derivatives for the history of this object.
@@ -141,17 +207,20 @@ class Scalar:
             d_output = 1.0
         backpropagate(self, d_output)
 
-    raise NotImplementedError("Need to include this file from past assignment.")
+    # TODO: Implement for Task 1.2.
+
+    # raise NotImplementedError("Need to implement for Task 1.2")
 
 
 def derivative_check(f: Any, *scalars: Scalar) -> None:
     """Checks that autodiff works on a python function.
+
     Asserts False if derivative is incorrect.
 
-    Parameters
-    ----------
-        f : function from n-scalars to 1-scalar.
-        *scalars  : n input scalar values.
+    Args:
+    ----
+        f (Any): The function to check.
+        *scalars (Scalar): Scalars to use for the derivative check.
 
     """
     out = f(*scalars)
